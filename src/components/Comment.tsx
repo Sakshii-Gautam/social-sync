@@ -1,5 +1,4 @@
 import { Avatar } from '@material-tailwind/react';
-import defaultImg from '../assets/defaultImg.jpeg';
 
 interface CommentProps {
   name: string;
@@ -16,7 +15,7 @@ const Comment = ({ name, comment, image }: CommentProps) => {
           className='w-10 rounded-full'
           alt='avatar'
           variant='circular'
-          src={image || defaultImg}
+          src={image || 'https://shrtco.de/A4INQp'}
         ></Avatar>
       </div>
       <div className='flex flex-col items-start bg-gray-100 rounded-2xl p-1 max-w-[600px]'>

@@ -1,6 +1,7 @@
 interface UserProfileProps {
   name: string;
   email: string;
+  bio: string;
   profilePic: string;
   posts: number;
   following: number;
@@ -12,6 +13,7 @@ const UserProfile = ({
   profilePic,
   posts,
   following,
+  bio,
 }: UserProfileProps) => {
   return (
     <section className='p-12 bg-blueGray-50'>
@@ -24,7 +26,7 @@ const UserProfile = ({
                   alt='profile-picture'
                   style={{ transform: 'translate(0%,-35%)' }}
                   src={profilePic}
-                  className='shadow-xl rounded-full align-middle border-none absolute transform -translate-y-35 w-40 h-40'
+                  className='object-cover shadow-xl rounded-full align-middle border-none absolute transform -translate-y-35 w-40 h-40'
                 />
               </div>
               <div className='mt-24 w-full px-4 text-center'>
@@ -48,9 +50,18 @@ const UserProfile = ({
               <h3 className='text-xl font-semibold leading-normal text-blueGray-700'>
                 {name}
               </h3>
-              <div className='text-blueGray-600 mt-2 mb-6'>
+              <div className='text-blueGray-600'>
                 <i className='fas fa-briefcase mr-2 text-lg text-blueGray-400'></i>
                 {email}
+              </div>
+              <div className='mt-5 py-2 border-t border-blueGray-200 text-center'>
+                <div className='flex flex-wrap justify-center'>
+                  <div className='w-full lg:w-9/12 px-4'>
+                    <p className='mb-4 text-lg leading-relaxed text-blueGray-700'>
+                      {bio}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

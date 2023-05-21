@@ -18,7 +18,6 @@ import {
 import { db } from '../firebaseConfig';
 import Comment from './Comment';
 import { toast } from 'react-toastify';
-import defaultImg from '../assets/defaultImg.jpeg';
 
 interface CommentSectionProps {
   postId: string;
@@ -45,7 +44,7 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
         await setDoc(commentRef, {
           id: commentRef.id,
           comment: comment?.current?.value,
-          image: user?.photoURL,
+          image: user?.photoURL || userData?.image,
           name: user?.name || userData?.name,
           timestamp: serverTimestamp(),
         });
@@ -94,7 +93,9 @@ const CommentSection = ({ postId }: CommentSectionProps) => {
             size='sm'
             className='w-10'
             variant='circular'
-            src={user?.photoURL || defaultImg}
+            src={
+              user?.photoURL || userData?.image || 'https://shrtco.de/A4INQp'
+            }
           />
         </div>
         <div className='w-full pr-2'>

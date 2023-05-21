@@ -12,7 +12,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import PostCard from '../components/PostCard';
-import defaultImg from '../assets/defaultImg.jpeg';
 
 interface UserPost {
   logo: string | null;
@@ -76,7 +75,10 @@ const ProfilePage = () => {
       <UserProfile
         name={user?.displayName || userData?.name}
         email={user?.email || userData?.email}
-        profilePic={user?.photoURL || userData?.image || defaultImg}
+        bio={user?.bio || userData?.bio}
+        profilePic={
+          user?.photoURL || userData?.image || 'https://shrtco.de/A4INQp'
+        }
         posts={userPosts?.length || 0}
         following={userInfo?.following?.length || 0}
       />
@@ -85,7 +87,7 @@ const ProfilePage = () => {
         userPosts.map((post) => (
           <div key={post?.documentId}>
             <PostCard
-              logo={post?.logo || defaultImg}
+              logo={post?.logo || 'https://shrtco.de/A4INQp'}
               id={post?.documentId}
               uid={post?.uid}
               name={post?.name}

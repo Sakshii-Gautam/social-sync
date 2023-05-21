@@ -106,14 +106,14 @@ const ProfileCard = ({ name, email, uid, logo }: ProfileCardProps) => {
       <div className='flex flex-col sm:flex-row'>
         <div className='p-2 w-60'>
           <div className=' bg-white px-6 py-8 rounded-lg shadow-lg text-center'>
-            <div className='mb-3 h-36'>
+            <div className='mx-auto w-36 h-36'>
               <img
-                className='h-full mx-auto rounded-full'
+                className='h-full mx-auto rounded-full object-cover'
                 src={logo}
                 alt='profileImage'
               />
             </div>
-            <h2 className='text-xl font-medium text-gray-700'>{name}</h2>
+            <h2 className='mt-2 text-xl font-medium text-gray-700'>{name}</h2>
             <span className='text-blue-500 block mb-5 overflow-hidden whitespace-nowrap overflow-ellipsis'>
               {email}
             </span>

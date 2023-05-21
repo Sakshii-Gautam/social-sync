@@ -11,7 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const App = () => {
   return (
     <UserContextProvider>
-      <ToastContainer theme='dark' position='top-center' />
+      <ToastContainer theme='dark' position='top-center' autoClose={2000} />
       <Routes>
         <Route path='/' element={<Homepage />} />
         <Route path='/allUsers' element={<AllUsers />} />

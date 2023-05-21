@@ -14,15 +14,16 @@ interface User {
 interface UserTaggingProps {
   image: string;
   users: User[];
-  onTaggedUsersChange: (taggedUsers: TaggedUser[]) => void;
+  taggedUsers: any;
+  setTaggedUsers: any;
 }
 
 const UserTagging = ({
   image,
   users,
-  onTaggedUsersChange,
+  taggedUsers,
+  setTaggedUsers,
 }: UserTaggingProps) => {
-  const [taggedUsers, setTaggedUsers] = useState<TaggedUser[]>([]);
   const [clickedPosition, setClickedPosition] = useState<{
     x: number;
     y: number;
@@ -48,8 +49,6 @@ const UserTagging = ({
     setSelectedUser(null);
     setClickedPosition(null);
     setShowTagInput(false);
-
-    onTaggedUsersChange([...taggedUsers, newTaggedUser]);
   };
 
   const handleRemoveTagInput = () => {
@@ -68,7 +67,7 @@ const UserTagging = ({
       )}
 
       {image &&
-        taggedUsers.map((taggedUser, index) => (
+        taggedUsers.map((taggedUser: TaggedUser, index: number) => (
           <div
             key={index}
             className='tagged-user absolute text-white bg-black bg-opacity-80 py-1 px-2 rounded-md'

@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { UserContext } from '../Contexts/UserContextProvider';
 import { auth, onAuthStateChanged } from '../firebaseConfig';
 import { useFormik } from 'formik';
@@ -11,7 +11,6 @@ import google from '../assets/google.svg';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
   const { signInWithGoogle, signInWithUserEmailAndPassword } =
     useContext(UserContext) ?? {};
 
@@ -19,9 +18,7 @@ const LoginPage = () => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         navigate('/');
-        setIsLoading(false);
       }
-      setIsLoading(false);
     });
   }, [navigate]);
 
@@ -43,9 +40,7 @@ const LoginPage = () => {
       e.preventDefault();
       if (validationSchema.isValidSync(formik?.values)) {
         signInWithUserEmailAndPassword?.(formik?.values);
-        setIsLoading(true);
       } else {
-        setIsLoading(false);
         toast.error('Invalid Input Fields');
       }
     } catch (error) {
@@ -62,9 +57,6 @@ const LoginPage = () => {
     onSubmit: handleSubmit,
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
   return (
     <section>
       <div className='h-screen bg-[#fcf8f5] grid grid-cols-1 md:grid-cols-2'>

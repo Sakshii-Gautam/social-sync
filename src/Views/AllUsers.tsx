@@ -3,7 +3,6 @@ import { db } from '../firebaseConfig';
 import ProfileCard from '../components/ProfileCard';
 import { collection, getDocs } from 'firebase/firestore';
 import Navbar from '../components/Navbar';
-import defaultImg from '../assets/defaultImg.jpeg';
 
 interface User {
   name: string;
@@ -42,7 +41,7 @@ const AllUsers = () => {
                 name={user?.name}
                 email={user?.email}
                 uid={user?.uid}
-                logo={user?.image || defaultImg}
+                logo={user?.image || 'https://shrtco.de/A4INQp'}
               />
             </div>
           ))}

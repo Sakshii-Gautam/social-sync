@@ -29,7 +29,8 @@ import PostCard from '../components/PostCard';
 import Navbar from '../components/Navbar';
 import UserTagging from '../components/UserTagging';
 import { toast } from 'react-toastify';
-import defaultImg from '../assets/defaultImg.jpeg';
+import { Link } from 'react-router-dom';
+import { Progress } from '@material-tailwind/react';
 
 interface User {
   uid: string;
@@ -57,7 +58,7 @@ interface FeedPost {
 
 const Homepage = () => {
   const { user, userData } = useContext(UserContext) ?? {};
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
@@ -69,6 +70,7 @@ const Homepage = () => {
   const [state, dispatch] = useReducer(PostsReducer, postsStates);
   const [users, setUsers] = useState<User[]>([]);
   const [taggedUsers, setTaggedUsers] = useState<TaggedUser[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const storage = getStorage();
 
@@ -83,24 +85,33 @@ const Homepage = () => {
       const storageRef = ref(storage, `images/${file.name}`);
       const uploadTask = uploadBytesResumable(storageRef, file, metadata);
 
-      uploadTask.on('state_changed', async () => {
-        try {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setImage(downloadURL);
-        } catch (error: any) {
-          dispatch({ type: HANDLE_ERROR });
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          setUploadProgress(progress);
+        },
+        (error) => {
           console.error(error.message);
-          const parts = error.message.split('/');
-          const message = parts[1];
-          toast.error(`(${message}`);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask?.snapshot?.ref);
+            setImage(downloadURL);
+          } catch (error: any) {
+            dispatch({ type: HANDLE_ERROR });
+            console.error(error.message);
+            const parts = error.message.split('/');
+            const message = parts[1];
+            toast.error(`(${message}`);
+          }
         }
-      });
+      );
     } catch (error: any) {
       dispatch({ type: HANDLE_ERROR });
       console.error(error.message);
-      const parts = error.message.split('/');
-      const message = parts[1];
-      toast.error(`(${message}`);
     }
   };
 
@@ -113,38 +124,32 @@ const Homepage = () => {
   const resetFields = () => {
     setImage(null);
     setFile(null);
-    if (inputRef?.current?.value) {
-      inputRef.current.value = '';
-    }
+    setInput('');
+    setTaggedUsers([]);
   };
 
   const handleSubmitPost = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (inputRef?.current?.value !== '') {
+    if (input !== '' || image) {
       try {
         const post = {
           documentId: document,
           uid: user?.uid || userData?.uid,
-          logo: user?.photoURL || userData?.image || defaultImg,
+          logo: user?.photoURL || userData?.image || 'https://shrtco.de/A4INQp',
           name: user?.displayName || userData?.name,
           email: user?.email || userData?.email,
-          text: inputRef?.current?.value,
+          text: input || '',
           image,
           timestamp: serverTimestamp(),
           tags: taggedUsers.map((taggedUser) => taggedUser.name),
         };
 
         await setDoc(postRef, post);
-
-        if (inputRef.current) {
-          inputRef.current.value = '';
-        }
+        setInput('');
+        setTaggedUsers([]);
       } catch (error: any) {
         dispatch({ type: HANDLE_ERROR });
         console.error(error.message);
-        const parts = error.message.split('/');
-        const message = parts[1];
-        toast.error(`(${message}`);
       }
     }
   };
@@ -157,16 +162,16 @@ const Homepage = () => {
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        const followingUser = querySnapshot.docs[0];
-        const following = followingUser.data().following || [];
-        const followingUIDs = following.map((user: any) => user.id);
+        const followingUser = querySnapshot?.docs[0];
+        const following = followingUser?.data()?.following || [];
+        const followingUIDs = following?.map((user: any) => user.id);
         const postsRef = collection(db, 'posts');
 
         // fetching posts from followed users and the logged-in user
         const qPosts = query(
           postsRef,
-          orderBy('timestamp', 'desc'),
-          where('uid', 'in', [...followingUIDs, user?.uid])
+          where('uid', 'in', [...followingUIDs, user?.uid]),
+          orderBy('timestamp', 'desc')
         );
 
         const querySnapshotPosts = await getDocs(qPosts);
@@ -231,7 +236,7 @@ const Homepage = () => {
       <Navbar />
       <div className='flex flex-col justify-center'>
         <div className='heading text-center font-bold text-2xl m-5 text-gray-800'>
-          Welcome, {user?.displayName || userData?.name || 'User'}
+          Welcome, {user?.displayName || userData?.name || 'User'}!
         </div>
 
         {/* Create Post Form */}
@@ -247,7 +252,8 @@ const Homepage = () => {
                 user?.displayName || userData?.name || 'User'
               }`}
               className='outline-none w-full bg-white rounded-md'
-              ref={inputRef}
+              onChange={(e) => setInput(e.target.value)}
+              value={input || ''}
             />
 
             <div className='icons flex text-gray-500 m-2'>
@@ -265,7 +271,7 @@ const Homepage = () => {
                   type='file'
                   style={{ display: 'none' }}
                   onChange={handleUpload}
-                ></input>
+                />{' '}
               </label>
             </div>
           </div>
@@ -273,9 +279,11 @@ const Homepage = () => {
           <UserTagging
             users={users}
             image={image}
-            onTaggedUsersChange={setTaggedUsers}
+            taggedUsers={taggedUsers}
+            setTaggedUsers={setTaggedUsers}
           />
 
+          {file && <Progress value={uploadProgress} size='sm' />}
           <div className='buttons flex mt-4'>
             <button
               onClick={resetFields}
@@ -285,7 +293,7 @@ const Homepage = () => {
             </button>
             <button
               type='submit'
-              className='btn border border-indigo-500 p-1 px-4 font-semibold cursor-pointer text-gray-200 ml-2 bg-indigo-500'
+              className='btn border border-indigo-500 p-1 px-4 font-semibold cursor-pointer text-white ml-2 bg-indigo-500'
             >
               Post
             </button>
@@ -301,22 +309,40 @@ const Homepage = () => {
               </div>
             ) : (
               <div>
-                {feedPosts?.length > 0 &&
+                {feedPosts?.length > 0 ? (
                   feedPosts?.map((post) => (
                     <PostCard
-                      key={post.documentId}
-                      logo={post.logo || defaultImg}
-                      id={post.documentId}
-                      uid={post.uid}
-                      name={post.name}
-                      email={post.email}
-                      image={post.image}
-                      text={post.text}
-                      timestamp={new Date(
-                        post?.timestamp?.toDate()
-                      )?.toUTCString()}
+                      key={post?.documentId}
+                      logo={post?.logo || 'https://shrtco.de/A4INQp'}
+                      id={post?.documentId}
+                      uid={post?.uid}
+                      name={post?.name}
+                      email={post?.email}
+                      image={post?.image}
+                      text={post?.text}
+                      timestamp={
+                        new Date(post?.timestamp?.toDate())?.toUTCString() || ''
+                      }
                     />
-                  ))}
+                  ))
+                ) : (
+                  <>
+                    <h3 className='my-10 text-2xl font-semibold text-center'>
+                      No posts yet!
+                    </h3>
+                    <h4 className='mt-4 text-xl font-bold text-center'>
+                      {' '}
+                      Create a post or{' '}
+                      <Link
+                        to='/allUsers'
+                        className='text-blue-600 hover:text-blue-300'
+                      >
+                        Follow Users
+                      </Link>{' '}
+                      to see their posts.
+                    </h4>
+                  </>
+                )}
               </div>
             )}
           </div>

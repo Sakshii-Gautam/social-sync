@@ -27,9 +27,11 @@ interface AuthUser {
   name?: string;
   email: string;
   password: string;
+  bio?: string;
+  profileImg?: string;
 }
 
-interface UserContextTypes {
+export interface UserContextTypes {
   signInWithGoogle: () => void;
   signInWithUserEmailAndPassword: (user: AuthUser) => void;
   registerWithUserEmailAndPassword: (user: AuthUser) => void;
@@ -60,7 +62,8 @@ const UserContextProvider = ({ children }: UserContextProviderProps) => {
           uid: user?.uid,
           name: user?.displayName,
           email: user?.email,
-          image: user?.photoURL || userData?.image,
+          image:
+            user?.photoURL || userData?.image || 'https://shrtco.de/A4INQp',
           authProvider: popup?.providerId,
         });
       }
@@ -90,6 +93,8 @@ const UserContextProvider = ({ children }: UserContextProviderProps) => {
     name,
     email,
     password,
+    bio,
+    profileImg,
   }: AuthUser) => {
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
@@ -99,12 +104,15 @@ const UserContextProvider = ({ children }: UserContextProviderProps) => {
         name,
         providerId: 'email/password',
         email: user?.email,
+        image: profileImg,
+        bio,
       });
     } catch (error: any) {
       console.error(error.message);
       const parts = error.message.split('/');
       const message = parts[1];
       toast.error(`(${message}`);
+      navigate('/signup');
     }
   };
 
@@ -141,6 +149,7 @@ const UserContextProvider = ({ children }: UserContextProviderProps) => {
     } else {
       navigate('/login');
     }
+
     return () => {
       userStateChanged();
     };

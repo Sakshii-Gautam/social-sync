@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useReducer, useState } from 'react';
 import { UserContext } from '../Contexts/UserContextProvider';
 import { auth, onAuthStateChanged } from '../firebaseConfig';
 import { useFormik } from 'formik';
@@ -8,10 +8,26 @@ import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import signup from '../assets/signup.jpeg';
 import google from '../assets/google.svg';
+import { Progress } from '@material-tailwind/react';
+import {
+  UploadMetadata,
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from 'firebase/storage';
+import {
+  PostsReducer,
+  postActions,
+  postsStates,
+} from '../Contexts/PostReducer';
 
 const SignupPage = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [state, dispatch] = useReducer(PostsReducer, postsStates);
+  const { HANDLE_ERROR } = postActions;
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const { signInWithGoogle, registerWithUserEmailAndPassword } =
     useContext(UserContext) ?? {};
 
@@ -19,12 +35,14 @@ const SignupPage = () => {
     name: '',
     email: '',
     password: '',
+    bio: '',
+    profileImg: '',
   };
 
   const validationSchema = yup.object({
     name: yup
       .string()
-      .required('Required')
+      .required('Name is required')
       .min(4, 'Must be at least 4 characters long'),
     email: yup
       .string()
@@ -35,15 +53,20 @@ const SignupPage = () => {
       .required('Password is required')
       .min(6, 'Password must be greater than or equal to six characters'),
   });
-
-  const handleRegister = (e: any) => {
-    e.preventDefault();
-    if (formik.isValid === true) {
-      registerWithUserEmailAndPassword?.(formik?.values);
-      setIsLoading(true);
-    } else {
-      setIsLoading(false);
-      toast.error('Invalid Input Fields');
+  const handleRegister = async (e: any) => {
+    try {
+      e.preventDefault();
+      if (validationSchema.isValidSync(formik?.values)) {
+        try {
+          await registerWithUserEmailAndPassword?.(formik?.values);
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        toast.error('Invalid Input Fields');
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -52,19 +75,55 @@ const SignupPage = () => {
     validationSchema,
     onSubmit: handleRegister,
   });
+
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
         navigate('/');
-        setIsLoading(false);
       }
-      setIsLoading(false);
     });
   }, [navigate]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  const storage = getStorage();
+  const metadata: UploadMetadata = {
+    contentType: '',
+  };
+
+  const handleFileUpload = (e: any): void => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const storageRef = ref(storage, `profileImages/${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file, metadata);
+
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          );
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error(error.message);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log('downloadURL', downloadURL);
+            formik.setFieldValue('profileImg', downloadURL);
+          } catch (error: any) {
+            dispatch({ type: HANDLE_ERROR });
+            console.error(error.message);
+          }
+        }
+      );
+    } catch (error: any) {
+      dispatch({ type: HANDLE_ERROR });
+      console.error(error.message);
+    }
+  };
 
   return (
     <section>
@@ -165,6 +224,42 @@ const SignupPage = () => {
                         {formik.errors.password}
                       </span>
                     )}
+                  </div>
+
+                  <div className='flex items-center justify-between'>
+                    <label
+                      htmlFor='bio'
+                      className='text-base font-medium text-gray-900'
+                    >
+                      Bio
+                    </label>
+                  </div>
+                  <div className='mt-2'>
+                    <input
+                      className='flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50'
+                      type='text'
+                      placeholder='Enter your bio'
+                      id='bio'
+                      {...formik.getFieldProps('bio')}
+                    ></input>
+                  </div>
+
+                  <div className='flex items-center justify-between'>
+                    <label
+                      htmlFor='profileImg'
+                      className='text-base font-medium text-gray-900'
+                    >
+                      Profile Picture
+                    </label>
+                  </div>
+                  <div className='mt-2'>
+                    <input
+                      className='flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50'
+                      type='file'
+                      id='profileImg'
+                      onChange={handleFileUpload}
+                    />
+                    <Progress value={uploadProgress} size='sm' />
                   </div>
                 </div>
                 <div>
