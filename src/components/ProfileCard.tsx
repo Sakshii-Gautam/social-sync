@@ -108,7 +108,7 @@ const ProfileCard = ({ name, email, uid, logo }: ProfileCardProps) => {
           <div className=' bg-white px-6 py-8 rounded-lg shadow-lg text-center'>
             <div className='mx-auto w-36 h-36'>
               <img
-                className='h-full mx-auto rounded-full object-cover'
+                className='h-full w-full mx-auto rounded-full object-cover'
                 src={logo}
                 alt='profileImage'
               />
