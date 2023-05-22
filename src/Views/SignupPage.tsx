@@ -24,7 +24,7 @@ import {
 
 const SignupPage = () => {
   const navigate = useNavigate();
-  const [state, dispatch] = useReducer(PostsReducer, postsStates);
+  const [_, dispatch] = useReducer(PostsReducer, postsStates);
   const { HANDLE_ERROR } = postActions;
   const [uploadProgress, setUploadProgress] = useState(0);
 
