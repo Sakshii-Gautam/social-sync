@@ -82,25 +82,26 @@ const ProfilePage = () => {
         posts={userPosts?.length || 0}
         following={userInfo?.following?.length || 0}
       />
-
-      {userPosts?.length ? (
-        userPosts.map((post) => (
-          <div key={post?.documentId}>
-            <PostCard
-              logo={post?.logo || 'https://shrtco.de/A4INQp'}
-              id={post?.documentId}
-              uid={post?.uid}
-              name={post?.name}
-              email={post?.email}
-              image={post?.image}
-              text={post?.text}
-              timestamp={new Date(post?.timestamp?.toDate())?.toUTCString()}
-            />
-          </div>
-        ))
-      ) : (
-        <h3 className='text-2xl font-bold text-center'>No posts yet!</h3>
-      )}
+      <div className='postcards flex flex-col-reverse'>
+        {userPosts?.length ? (
+          userPosts.map((post) => (
+            <div key={post?.documentId}>
+              <PostCard
+                logo={post?.logo || 'https://shrtco.de/A4INQp'}
+                id={post?.documentId}
+                uid={post?.uid}
+                name={post?.name}
+                email={post?.email}
+                image={post?.image}
+                text={post?.text}
+                timestamp={new Date(post?.timestamp?.toDate())?.toUTCString()}
+              />
+            </div>
+          ))
+        ) : (
+          <h3 className='text-2xl font-bold text-center'>No posts yet!</h3>
+        )}
+      </div>
     </>
   );
 };
