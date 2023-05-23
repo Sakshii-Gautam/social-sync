@@ -1,6 +1,9 @@
 # Social-Sync (Social Media Web Application)
 
-Deployed site link: [SocialSync](https://social-sync.netlify.app/)
+Deployed site link: [SocialSync](https://social-sync.netlify.app/)   
+
+Assets Link: [Previews](https://drive.google.com/drive/folders/1W7CnniinXhUAXdmvXlwHcNwTg5tXOAGx?usp=sharing)
+
 
 SocialSync is social media application built using React for the frontend and Firebase as the backend service. The app allows users to create and follow other users, and interact with posts through likes and comments. It provides a seamless and engaging experience for users to connect with others and share their thoughts and content.
 
